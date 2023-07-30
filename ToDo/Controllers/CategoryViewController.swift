@@ -7,7 +7,6 @@
 
 import UIKit
 import CoreData
-import SwipeCellKit
 
 class CategoryViewController: UITableViewController {
     
@@ -25,8 +24,7 @@ class CategoryViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath) as! SwipeTableViewCell
-        cell.delegate = self
+        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
         let category = categories[indexPath.row]
         
         if #available(iOS 14.0, *) {
@@ -38,6 +36,15 @@ class CategoryViewController: UITableViewController {
         }
 
         return cell
+    }
+    
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+      if editingStyle == .delete {
+          context.delete(categories[indexPath.row])
+          self.categories.remove(at: indexPath.row)
+          self.tableView.deleteRows(at: [indexPath], with: .automatic)
+          saveCategories()
+      }
     }
     
     //MARK: - Data manipulation
@@ -106,21 +113,4 @@ class CategoryViewController: UITableViewController {
             destinactionVC.selectedCategory = categories[indexpath.row]
         }
     }
-}
-
-//MARK: - Swipe Cell delegate
-extension CategoryViewController: SwipeTableViewCellDelegate {
-    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath, for orientation: SwipeCellKit.SwipeActionsOrientation) -> [SwipeCellKit.SwipeAction]? {
-        guard orientation == .right else { return nil }
-
-            let deleteAction = SwipeAction(style: .destructive, title: "Delete") { action, indexPath in
-                // handle action by updating model with deletion
-            }
-
-            // customize the action appearance
-            deleteAction.image = UIImage(named: "delete")
-
-            return [deleteAction]
-    }
-    
 }
